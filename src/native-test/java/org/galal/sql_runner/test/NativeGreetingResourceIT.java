@@ -1,4 +1,4 @@
-package org.acme.config;
+package org.galal.sql_runner.test;
 
 import io.quarkus.test.junit.NativeImageTest;
 

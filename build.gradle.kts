@@ -16,21 +16,30 @@ dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
     implementation("io.quarkus:quarkus-rest-client-jackson")
     implementation("io.quarkus:quarkus-vertx")
-    implementation("io.quarkus:quarkus-smallrye-openapi")
+//    implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-config-yaml")
     implementation("io.quarkus:quarkus-jackson")
     implementation("io.quarkus:quarkus-logging-json")
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-smallrye-metrics")
     implementation("io.quarkus:quarkus-reactive-db2-client")
-    implementation("io.quarkus:quarkus-micrometer")
+    implementation("io.quarkus:quarkus-agroal")
+//    implementation("io.quarkus:quarkus-micrometer")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-resteasy")
+    compileOnly("org.projectlombok:lombok:1.18.16")
+    annotationProcessor("org.projectlombok:lombok:1.18.16")
+    implementation("uk.co.datumedge:hamcrest-json:0.2")
+
+    testCompileOnly("org.projectlombok:lombok:1.18.16")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.16")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.quarkus:quarkus-test-h2")
+    testImplementation("org.jdbi:jdbi3-core:3.1.0")
 }
 
-group = "com.galal"
+group = "org.galal"
 version = "1.0.0-SNAPSHOT"
 
 java {

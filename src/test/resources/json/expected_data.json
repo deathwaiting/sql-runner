@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "car_type":  "sedan",
+    "brand": "BMW",
+    "model": "M3",
+    "purchase_time": "2020-11-30T20:00:00Z"
+  },
+  {
+    "id": 2,
+    "car_type":  "off road",
+    "brand": "Land Rover",
+    "model": "S3",
+    "purchase_time": "2020-11-30T20:00:00Z"
+  }
+]

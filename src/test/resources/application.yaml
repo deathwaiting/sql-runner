@@ -1,0 +1,17 @@
+greeting:
+  message: "hello"
+  name: "quarkus"
+
+quarkus:
+  datasource:
+#    ~: true
+    db-kind: h2   # this is actually mandatory
+    jdbc:
+      url: "jdbc:h2:tcp://localhost/mem:test"
+      driver: "org.h2.Driver"
+    username: sa
+    password: password
+  smallrye-metrics:
+    extensions:
+      enabled: false
+

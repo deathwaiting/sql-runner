@@ -1,0 +1,15 @@
+notes
+- quarkus.datasource.db-kind is actually mandatory, without it, i get warning:
+"The Agroal dependency is present but no JDBC datasources have been defined."
+The documentation doesn't mention that!
+
+- if the datasource is not configured, i can't inject it anywhere, and the build fails because quarkus uses build time
+injection.
+
+- to set quarkus.datasource.jdbc, which is a parent of another properties in yaml , you will need to add '~:true' as
+key-value in it sub-structure.
+https://quarkus.io/guides/config#configuration-key-conflicts
+
+- i had problems with smallrye monitoring, it thrown errors that there are "multiple producers" , so i disabled it from
+the gradle file
+
