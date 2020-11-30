@@ -27,9 +27,12 @@ dependencies {
 //    implementation("io.quarkus:quarkus-micrometer")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-resteasy")
+    implementation("io.quarkus:quarkus-resteasy-mutiny")
     compileOnly("org.projectlombok:lombok:1.18.16")
     annotationProcessor("org.projectlombok:lombok:1.18.16")
     implementation("uk.co.datumedge:hamcrest-json:0.2")
+    implementation("io.netty:netty-transport-native-epoll:linux-x86_64")
+    implementation("io.netty:netty-transport-native-kqueue:osx-x86_64")
 
     testCompileOnly("org.projectlombok:lombok:1.18.16")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.16")

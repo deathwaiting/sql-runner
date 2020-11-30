@@ -1,21 +1,31 @@
 package org.galal.sql_runner.controller;
 
-import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
-import io.vertx.core.Vertx;
+import io.smallrye.mutiny.Uni;
+import io.vertx.core.json.JsonObject;
+import io.vertx.mutiny.core.eventbus.EventBus;
+import io.vertx.mutiny.core.eventbus.Message;
 import lombok.Getter;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.galal.sql_runner.services.verticles.enums.Headers;
+import org.galal.sql_runner.services.verticles.uitls.VertxUtils;
+import org.galal.sql_runner.utils.Utils;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import java.util.Optional;
 
+import static java.util.Optional.ofNullable;
+import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.http.HttpStatus.SC_OK;
+import static org.galal.sql_runner.services.verticles.enums.Headers.STATUS;
+import static org.galal.sql_runner.services.verticles.enums.Messages.EXECUTE_SQL;
+import static org.galal.sql_runner.services.verticles.uitls.VertxUtils.readMessageStatus;
 
 
 @Path("/sql")
@@ -23,25 +33,23 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 public class SqlResource {
 
     @Inject
-    Vertx vertx;
+    EventBus bus;
 
     @GET
     @Path("/{file}")
     @Produces(APPLICATION_JSON)
-    public Object hello(@PathParam String file) {
-        return new Data(file, "my data 2");
+    public Uni<Response> hello(@PathParam String file) {
+        return bus
+                .<JsonObject>request(EXECUTE_SQL.name(), file)
+                .onItem()
+                .transform(this::createResponse);
     }
-}
 
 
-@Getter
-class Data{
-    String d1;
-    String d2;
 
-    Data(String d1, String d2){
-        this.d1 = d1;
-        this.d2 = d2;
+    private Response createResponse(Message<?> message){
+        int status = readMessageStatus(message);
+       return Response.status(status).entity(message.body()).build();
     }
 }
 

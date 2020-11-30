@@ -15,3 +15,8 @@ quarkus:
     extensions:
       enabled: false
 
+org:
+  galal:
+    sql_runner:
+      directory: "resources/test/sql"
+
