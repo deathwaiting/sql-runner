@@ -17,30 +17,24 @@ import static org.galal.sql_runner.services.verticles.enums.Messages.*;
 import static org.galal.sql_runner.services.verticles.uitls.VertxUtils.readMessageStatus;
 
 @ApplicationScoped
-public class SqlExecuterVerticle extends AbstractVerticle {
+public class SqlExecuterVerticle {
 
 
     @Inject
     EventBus bus;
 
-    @ConsumeEvent(value = EXECUTE_SQL)
-    public Message<JsonObject> runSql(Message<String> sqlFilePath){
+    @ConsumeEvent(EXECUTE_SQL)
+    public Uni<JsonObject> runSql(String sqlFilePathMsg){
         return bus
-                .request(GET_FILE, sqlFilePath)
-                .onItem()
-                .transform()
-                .chain(this::executeSql)
+                .request(GET_FILE, sqlFilePathMsg)
+                .chain(this::executeSql);
     }
 
 
 
-    private Message<JsonObject> executeSql(Message<String> sqlFileMsg){
-        int status = readMessageStatus(sqlFileMsg);
-        if(status != HttpStatus.SC_OK){
-            return Message.
-        }
-        return bus
-                .request(RUN_SQL, sql)
-                .
+    private Uni<JsonObject> executeSql(Message<?> sqlFileMsg){
+       String sql = (String) sqlFileMsg.body();
+       JsonObject json = new JsonObject().put("sql", sql);
+       return Uni.createFrom().item(json);
     }
 }

@@ -18,5 +18,5 @@ quarkus:
 org:
   galal:
     sql_runner:
-      directory: "resources/test/sql"
+      directory: "src/test/resources/sql"
 

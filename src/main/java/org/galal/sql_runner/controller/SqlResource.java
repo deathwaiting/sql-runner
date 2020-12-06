@@ -1,12 +1,17 @@
 package org.galal.sql_runner.controller;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import io.quarkus.vertx.web.Param;
+import io.quarkus.vertx.web.Route;
+import io.quarkus.vertx.web.RoutingExchange;
 import io.smallrye.mutiny.Uni;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
@@ -28,28 +33,19 @@ import static org.galal.sql_runner.services.verticles.enums.Messages.EXECUTE_SQL
 import static org.galal.sql_runner.services.verticles.uitls.VertxUtils.readMessageStatus;
 
 
-@Path("/sql")
-@RegisterRestClient
+@ApplicationScoped
 public class SqlResource {
 
     @Inject
     EventBus bus;
 
-    @GET
-    @Path("/{file}")
-    @Produces(APPLICATION_JSON)
-    public Uni<Response> hello(@PathParam String file) {
+    @Route(path = "/sql/:file", produces = APPLICATION_JSON, methods = HttpMethod.GET)
+    public Uni<String> runSql(@Param("file") String file) {
         return bus
-                .<JsonObject>request(EXECUTE_SQL.name(), file)
-                .onItem()
-                .transform(this::createResponse);
+                .<JsonObject>request(EXECUTE_SQL, file)
+                .map(Message::body)
+                .map(Object::toString);
     }
 
-
-
-    private Response createResponse(Message<?> message){
-        int status = readMessageStatus(message);
-       return Response.status(status).entity(message.body()).build();
-    }
 }
 
