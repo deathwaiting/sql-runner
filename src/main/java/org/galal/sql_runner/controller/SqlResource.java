@@ -33,7 +33,7 @@ public class SqlResource {
     @Route(path = "/:file", methods = HttpMethod.GET)
     public Uni<String> runSql(@Param("file") String file) {
         return bus
-                .<JsonArray>request(EXECUTE_SQL, file)
+                .request(EXECUTE_SQL, file)
                 .map(Message::body)
                 .map(Object::toString)
                 .onItem()

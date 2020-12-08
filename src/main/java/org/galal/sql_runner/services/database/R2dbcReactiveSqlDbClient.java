@@ -1,5 +1,7 @@
 package org.galal.sql_runner.services.database;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
@@ -12,6 +14,7 @@ import org.jboss.logging.Logger;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 
+import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
 
@@ -26,17 +29,19 @@ public class R2dbcReactiveSqlDbClient implements ReactiveSqlDbClient{
     private DatabaseProperties props;
     private DatabaseClient client;
 
+    private  ObjectMapper objectMapper;
 
 
-    public R2dbcReactiveSqlDbClient(DatabaseProperties properties){
+    public R2dbcReactiveSqlDbClient(DatabaseProperties properties, ObjectMapper objectMapper){
         this.props = properties;
+        this.objectMapper = objectMapper;
         createDatabaseClient();
     }
 
 
 
     @Override
-    public Uni<JsonArray> query(String sql) {
+    public Uni<String> query(String sql) {
         LOG.info(format("R2dbc running query: [%s]",sql));
         var resultMono =
                 client
@@ -44,7 +49,7 @@ public class R2dbcReactiveSqlDbClient implements ReactiveSqlDbClient{
                     .fetch()
                     .all()
                     .collectList()
-                    .map(this::rowsToJsonArray)
+                    .flatMap(this::rowsToJsonArray)
                     .doOnError(e -> LOG.error(format("failed to run query[%s]",sql) ,e))
                     .doOnNext(res -> LOG.info("R2dbc ran the query!"));
         return Uni.createFrom().converter(fromMono(), resultMono);
@@ -60,10 +65,14 @@ public class R2dbcReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
 
-    private JsonArray rowsToJsonArray(List<Map<String,Object>> rows){
-        var json = new JsonArray();
-        rows.forEach(json::add);
-        return json;
+    private Mono<String> rowsToJsonArray(List<Map<String,Object>> rows){
+        try {
+           var json = objectMapper.writeValueAsString(rows);
+           return Mono.just(json);
+        } catch (JsonProcessingException e) {
+            LOG.error(e);
+            return Mono.error(e);
+        }
     }
 
 

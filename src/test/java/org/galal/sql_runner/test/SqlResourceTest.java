@@ -9,8 +9,12 @@ import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.galal.sql_runner.services.config.DatabaseProperties;
 import org.galal.test_utils.TestUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 import org.springframework.data.r2dbc.core.DatabaseClient;
+import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
@@ -25,11 +29,12 @@ import static org.galal.test_utils.TestUtils.readResourceAsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONArrayAs;
 import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONAs;
 
 @QuarkusTest
 @QuarkusTestResource(H2DatabaseTestResource.class)
-public class GreetingResourceTest {
+public class SqlResourceTest {
 
     @Inject
     DataSource dataSource;
@@ -60,23 +65,18 @@ public class GreetingResourceTest {
 
 
 
-    @Test
-    public void testConfig(){
-        assertEquals("jdbc:h2:tcp://localhost/mem:test", jdbcUrl);
-        assertEquals("org.h2.Driver", jdbcDriver);
-    }
-
 
 
     @Test
-    public void testHelloEndpoint() {
-        String expectedJson = readResourceAsString("json/expected_data.json");
+    public void testHelloEndpoint() throws JSONException {
+        String expectedJsonStr = readResourceAsString("json/expected_data.json");
+        JSONArray expectedArray = new JSONArray(expectedJsonStr);
 
         given()
         .when().get("/sql/query_this.sql")
         .then()
         .statusCode(200)
-        .body(sameJSONAs(expectedJson)
+        .body(sameJSONAs(expectedJsonStr)
                 .allowingExtraUnexpectedFields()
                 .allowingAnyArrayOrdering());
     }

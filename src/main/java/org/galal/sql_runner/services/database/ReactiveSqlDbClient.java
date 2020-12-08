@@ -4,6 +4,6 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.core.json.JsonArray;
 
 public interface ReactiveSqlDbClient {
-    Uni<JsonArray> query(String sql);
+    Uni<String> query(String sql);
     Uni<Integer> execute(String sql);
 }

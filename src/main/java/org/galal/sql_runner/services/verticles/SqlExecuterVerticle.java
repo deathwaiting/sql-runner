@@ -26,19 +26,21 @@ public class SqlExecuterVerticle {
     ReactiveSqlDbClient reactiveDbClient;
 
     @ConsumeEvent(EXECUTE_SQL)
-    public Uni<JsonArray> runSql(String sqlFilePathMsg){
+    public Uni<String> executeSql(String sqlFilePathMsg){
         return bus
                 .request(GET_FILE, sqlFilePathMsg)
-                .chain(this::executeSql);
+                .flatMap(this::executeSql);
     }
 
 
 
-    private Uni<JsonArray> executeSql(Message<?> sqlFileMsg){
+    private Uni<String> executeSql(Message<?> sqlFileMsg){
        String sql = (String) sqlFileMsg.body();
        return reactiveDbClient
                .query(sql)
                .onItem()
-               .invoke(res -> LOG.info("Executor called the query!"));
+               .invoke(res -> LOG.info("Executor called the query!"))
+               .onFailure()
+               .invoke(e -> LOG.error("Executor Failed!", e));
     }
 }

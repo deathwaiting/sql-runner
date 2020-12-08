@@ -38,4 +38,7 @@ project to 1.4.200
 Uni to even log errors at certain stage, still have not figured how to bubble the errors up to the response using the
 reactive chain, it seems possible though when using jax-rs and resteasy.
 
+- returning something other than Uni<String> for vertx @ConsumeEvent, caused the returned message to never come causing
+timeout
+
 

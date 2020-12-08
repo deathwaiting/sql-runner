@@ -1,5 +1,6 @@
 package org.galal.sql_runner.services.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.galal.sql_runner.services.database.R2dbcReactiveSqlDbClient;
 import org.galal.sql_runner.services.database.ReactiveSqlDbClient;
 
@@ -20,13 +21,16 @@ public class ReactiveSqlDbClientConfig {
     @Inject
     DatabaseProperties props;
 
+    @Inject
+    ObjectMapper objectMapper;
+
     @Produces
     @ApplicationScoped
     public ReactiveSqlDbClient createClient(){
         String db = ofNullable(props.getDriver())
                 .orElseThrow(() -> new IllegalStateException("property org.galal.sql_runner.r2dbc.driver is not provided!"));
         if(R2DBC_SUPPORTED_DATABASES.contains(db)){
-            return new R2dbcReactiveSqlDbClient(props);
+            return new R2dbcReactiveSqlDbClient(props, objectMapper);
         }
         throw new IllegalStateException(format("Driver type[%s] , provided by org.galal.sql_runner.r2dbc.driver is not supported!", db));
     }
