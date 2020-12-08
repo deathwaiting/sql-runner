@@ -7,16 +7,27 @@ quarkus:
 #    ~: true
     db-kind: h2   # this is actually mandatory
     jdbc:
-      url: "jdbc:h2:tcp://localhost/mem:test"
+      url: "jdbc:h2:mem:test"
       driver: "org.h2.Driver"
     username: sa
     password: password
+    hostname: localhost
+    port:
   smallrye-metrics:
     extensions:
       enabled: false
+  vertx:
+    max-event-loop-execute-time: 30
 
 org:
   galal:
     sql_runner:
       directory: "src/test/resources/sql"
-
+      r2dbc:
+        driver: h2
+        protocol: mem
+        database: test
+        host:
+        port:
+        username: sa
+        password: password

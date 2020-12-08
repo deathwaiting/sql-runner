@@ -13,3 +13,29 @@ https://quarkus.io/guides/config#configuration-key-conflicts
 - i had problems with smallrye monitoring, it thrown errors that there are "multiple producers" , so i disabled it from
 the gradle file
 
+- i read an article that used vertx reactive clients for relational database and apparently
+it didn't perform well. more over r2dbc supported more database, was more popular, provided
+better features and better encapsulations, spring-r2dbc-client supported multiple databases out of box
+, which meant i could just change the configurations in application.yml while importing all the
+database drivers into the project.
+quarkus clients on the other hand didn't support that as i remember, and i had to match the configuration
+with the loaded reactive client, the api was not easy and a lot of boiler plate for values extraction
+seemed in the horizon, r2dbc on the other hand returned the rows as List<Map<String,Object>> which
+could be easily converted to JsonObject.
+So, i ended up with using r2dbc instead and ditching the quarkus ways.
+
+- r2dbc uses project reactor ,while quarkus uses mutiny, so i have to use 'io.smallrye.reactive:mutiny-reactor' artifact
+to convert between them
+
+- there were several dependency conflicts between quarkus, r2dbc and some r2dbc drivers:
+-- quarkus 1.9.2.FINAL had a dependency on spring-core 5.2.9, while spring-r2dbc client 1.2 had a dependency on spring
+ 5.3
+-- quarkus 1.9.2.FINAL h2 test had a dependency on h2 1.4.197, but r2dbc driver had one on 1.4.200
+-- so i had to downgrade r2dbc to 1.1.4.RELEASE which also uses spring 5.2.9, and force h2 version in the
+project to 1.4.200
+
+- unlike exceptions in spring, error are swallon inside the reactive chain, you have to add events handlers for
+Uni to even log errors at certain stage, still have not figured how to bubble the errors up to the response using the
+reactive chain, it seems possible though when using jax-rs and resteasy.
+
+

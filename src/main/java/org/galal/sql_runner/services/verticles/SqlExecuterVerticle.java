@@ -2,13 +2,12 @@ package org.galal.sql_runner.services.verticles;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
-import org.apache.http.HttpStatus;
-import org.galal.sql_runner.services.verticles.enums.MessageStatus;
-import org.galal.sql_runner.services.verticles.enums.Messages;
+import org.galal.sql_runner.services.database.ReactiveSqlDbClient;
+import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -18,13 +17,16 @@ import static org.galal.sql_runner.services.verticles.uitls.VertxUtils.readMessa
 
 @ApplicationScoped
 public class SqlExecuterVerticle {
-
+    private static final Logger LOG = Logger.getLogger(SqlExecuterVerticle.class);
 
     @Inject
     EventBus bus;
 
+    @Inject
+    ReactiveSqlDbClient reactiveDbClient;
+
     @ConsumeEvent(EXECUTE_SQL)
-    public Uni<JsonObject> runSql(String sqlFilePathMsg){
+    public Uni<JsonArray> runSql(String sqlFilePathMsg){
         return bus
                 .request(GET_FILE, sqlFilePathMsg)
                 .chain(this::executeSql);
@@ -32,9 +34,11 @@ public class SqlExecuterVerticle {
 
 
 
-    private Uni<JsonObject> executeSql(Message<?> sqlFileMsg){
+    private Uni<JsonArray> executeSql(Message<?> sqlFileMsg){
        String sql = (String) sqlFileMsg.body();
-       JsonObject json = new JsonObject().put("sql", sql);
-       return Uni.createFrom().item(json);
+       return reactiveDbClient
+               .query(sql)
+               .onItem()
+               .invoke(res -> LOG.info("Executor called the query!"));
     }
 }

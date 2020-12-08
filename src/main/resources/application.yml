@@ -4,3 +4,16 @@ quarkus:
   resteasy:
     gzip:
       enabled: true
+
+org:
+  galal:
+    sql_runner:
+      directory: "src/test/resources/sql"
+      r2dbc:
+        driver: h2
+        protocol: mem
+        database: test
+        host:
+        port:
+        username: sa
+        password: password
