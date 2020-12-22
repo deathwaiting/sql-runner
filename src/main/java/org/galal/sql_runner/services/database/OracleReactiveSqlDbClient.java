@@ -11,6 +11,8 @@ import oracle.jdbc.driver.OracleDriver;
 import org.galal.sql_runner.services.config.DatabaseProperties;
 import org.jboss.logging.Logger;
 import org.jdbi.v3.core.Jdbi;
+
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +51,10 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
         try {
             List<Map<String,Object>> result =
                     this.jdbi
-                            .withHandle( h -> h.createQuery(sql))
-                            .mapToMap().list();
+                            .withHandle(
+                                    h -> h.createQuery(sql)
+                                            .mapToMap()
+                                            .list());
             return objectMapper.writeValueAsString(result);
         } catch (JsonProcessingException e) {
             LOG.error(e,e);
@@ -69,12 +73,12 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
     private void createDatabaseConnectionPool() {
+        LOG.info("Creating agroal connection pool for oracle database...");
         String url = format("jdbc:oracle:thin:@%s:%d/%s", props.getHost(), props.getPort(), props.getDatabase());
         AgroalDataSourceConfigurationSupplier configuration =
                 new AgroalDataSourceConfigurationSupplier()
                         .connectionPoolConfiguration(
-                                cp -> cp.maxSize( 1 )
-                                        .minSize( MIN_POOL_SIZE )
+                                cp -> cp.minSize( MIN_POOL_SIZE )
                                         .maxSize( MAX_POOL_SIZE )
                                         .connectionFactoryConfiguration(
                                                 cf -> cf.connectionProviderClass( OracleDriver.class )
@@ -82,8 +86,8 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
                                                         .principal(new NamePrincipal( props.getUsername()))
                                                         .credential(new SimplePassword( props.getPassword())
                                                         ) ));
-        try ( AgroalDataSource agroalDataSource = AgroalDataSource.from( configuration ) ) {
-            this.dataSource = agroalDataSource;
+        try {
+            this.dataSource = AgroalDataSource.from( configuration );
             this.jdbi = Jdbi.create(this.dataSource);
         } catch ( SQLException e ) {
             LOG.error( "Failed to create Oracle Connection pool", e );
