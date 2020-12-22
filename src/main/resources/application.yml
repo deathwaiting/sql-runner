@@ -10,10 +10,17 @@ org:
     sql_runner:
       directory: "src/test/resources/sql"
       r2dbc:
+        #possible values for driver [oracle, h2, postgres, mysql, mssql]
         driver: h2
-        protocol: mem
+        protocol : mem
         database: test
-        host:
-        port:
         username: sa
         password: password
+
+#        example configuration for oracle DB
+#        driver: oracle
+#        protocol: jdbc:oracle:thin
+#        host: localhost
+#        port: 49161
+#        username: system
+#        password: oracle

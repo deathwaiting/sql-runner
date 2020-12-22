@@ -4,10 +4,12 @@ import io.agroal.api.AgroalDataSource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.TestProfile;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.galal.sql_runner.services.config.DatabaseProperties;
+import org.galal.sql_runner.test.quarkus.profiles.OracleDbTestProfile;
 import org.galal.test_utils.TestUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -43,13 +45,6 @@ public class SqlResourceTest {
     DatabaseProperties props;
 
 
-    @ConfigProperty(name = "quarkus.datasource.jdbc.url")
-    String jdbcUrl;
-
-    @ConfigProperty(name = "quarkus.datasource.jdbc.driver")
-    String jdbcDriver;
-
-
 
     @BeforeEach
     public void loadDBTables(){
@@ -68,7 +63,7 @@ public class SqlResourceTest {
 
 
     @Test
-    public void testHelloEndpoint() throws JSONException {
+    public void runSqlFileTest() throws JSONException {
         String expectedJsonStr = readResourceAsString("json/expected_data.json");
         JSONArray expectedArray = new JSONArray(expectedJsonStr);
 
@@ -80,6 +75,10 @@ public class SqlResourceTest {
                 .allowingExtraUnexpectedFields()
                 .allowingAnyArrayOrdering());
     }
+
+
+
+
 
 
 

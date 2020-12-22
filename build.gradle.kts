@@ -47,14 +47,15 @@ dependencies {
     implementation("dev.miku:r2dbc-mysql:0.8.2.RELEASE")
     implementation("io.r2dbc:r2dbc-postgresql:0.8.6.RELEASE")
     implementation("io.smallrye.reactive:mutiny-reactor:0.11.0")
-
+    implementation("com.oracle.database.jdbc:ojdbc10-production:19.8.0.0")
+    implementation("org.jdbi:jdbi3-core:3.1.0")
 
     testCompileOnly("org.projectlombok:lombok:1.18.16")
     testAnnotationProcessor("org.projectlombok:lombok:1.18.16")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.quarkus:quarkus-test-h2")
-    testImplementation("org.jdbi:jdbi3-core:3.1.0")
+
 }
 
 group = "org.galal"

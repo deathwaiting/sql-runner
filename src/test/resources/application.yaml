@@ -1,7 +1,3 @@
-greeting:
-  message: "hello"
-  name: "quarkus"
-
 quarkus:
   datasource:
 #    ~: true
@@ -13,6 +9,12 @@ quarkus:
     password: password
     hostname: localhost
     port:
+#    db-kind: other   # this is actually mandatory
+#    jdbc:
+#      url: "jdbc:oracle:thin:@localhost:49161/xe"
+#      driver: "oracle.jdbc.driver.OracleDriver"
+#    username: system
+#    password: oracle
   smallrye-metrics:
     extensions:
       enabled: false
@@ -31,3 +33,15 @@ org:
         port:
         username: sa
         password: password
+#org:
+#  galal:
+#    sql_runner:
+#      directory: "src/test/resources/sql"
+#      r2dbc:
+#        driver: oracle
+#        protocol: jdbc:oracle:thin
+#        database: xe
+#        host: localhost
+#        port: 49161
+#        username: system
+#        password: oracle
