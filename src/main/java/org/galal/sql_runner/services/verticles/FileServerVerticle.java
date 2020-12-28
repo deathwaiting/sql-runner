@@ -1,5 +1,6 @@
 package org.galal.sql_runner.services.verticles;
 
+import io.quarkus.cache.CacheResult;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.Uni;
@@ -9,6 +10,7 @@ import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.core.eventbus.Message;
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.galal.sql_runner.services.verticles.uitls.FileReader;
 import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -31,10 +33,13 @@ public class FileServerVerticle {
     private static final Logger LOG = Logger.getLogger(FileServerVerticle.class);
 
     @Inject
-    Vertx vertx;
+    FileReader fileReader;
+
 
     @ConfigProperty(name = "org.galal.sql_runner.directory", defaultValue = "sql")
     String directoryPath;
+
+
 
     private final Path workingDir = FileSystems.getDefault().getPath(".").toAbsolutePath();
 
@@ -51,9 +56,10 @@ public class FileServerVerticle {
                  .item(Path.of(directoryPath))
                  .map(dir -> dir.resolve(filePathMessage))
                  .map(Path::toString)
-                 .chain(vertx.fileSystem()::readFile)
-                 .map(Buffer::toString);
+                 .chain(fileReader::readFileFromPath);
     }
+
+
 
 
     private void initializeSqlDirectory(){

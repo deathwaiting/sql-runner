@@ -1,26 +1,22 @@
 package org.galal.sql_runner.test;
 
-import io.agroal.api.AgroalDataSource;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.h2.H2DatabaseTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.TestProfile;
+import io.quarkus.test.junit.mockito.InjectSpy;
 import io.r2dbc.spi.ConnectionFactories;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.galal.sql_runner.services.config.DatabaseProperties;
-import org.galal.sql_runner.test.quarkus.profiles.OracleDbTestProfile;
-import org.galal.test_utils.TestUtils;
+import org.galal.sql_runner.services.verticles.uitls.FileReader;
 import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.jupiter.api.*;
+import org.mockito.Mockito;
 import org.springframework.data.r2dbc.core.DatabaseClient;
-import uk.co.datumedge.hamcrest.json.SameJSONAs;
 
 import javax.inject.Inject;
 import javax.sql.DataSource;
-import java.nio.file.Path;
 
 import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 import static io.r2dbc.spi.ConnectionFactoryOptions.SSL;
@@ -43,6 +39,9 @@ public class SqlResourceTest {
 
     @Inject
     DatabaseProperties props;
+
+    @ConfigProperty(name = "org.galal.sql_runner.directory", defaultValue = "sql")
+    String directoryPath;
 
 
 
@@ -79,9 +78,6 @@ public class SqlResourceTest {
 
 
 
-
-
-
     @Test
     public void testDataClient(){
         var connectionOptions =
@@ -99,6 +95,32 @@ public class SqlResourceTest {
         var client = DatabaseClient.create(connectionFactory);
         var res = client.execute("select * from car").fetch().all().collectList().block();
         assertFalse(res.isEmpty());
+    }
+
+
+
+
+    @Test
+    public void fileContentCachingTest() throws JSONException {
+        String expectedJsonStr = readResourceAsString("json/expected_data.json");
+        JSONArray expectedArray = new JSONArray(expectedJsonStr);
+
+        given()
+                .when().get("/sql/query_this.sql")
+                .then()
+                .statusCode(200)
+                .body(sameJSONAs(expectedJsonStr)
+                        .allowingExtraUnexpectedFields()
+                        .allowingAnyArrayOrdering());
+
+        //read the file again
+        given()
+                .when().get("/sql/query_this.sql")
+                .then()
+                .statusCode(200)
+                .body(sameJSONAs(expectedJsonStr)
+                        .allowingExtraUnexpectedFields()
+                        .allowingAnyArrayOrdering());
     }
 
 
