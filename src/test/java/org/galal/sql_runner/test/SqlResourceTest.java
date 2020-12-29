@@ -18,6 +18,8 @@ import org.springframework.data.r2dbc.core.DatabaseClient;
 import javax.inject.Inject;
 import javax.sql.DataSource;
 
+import java.util.Base64;
+
 import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 import static io.r2dbc.spi.ConnectionFactoryOptions.SSL;
 import static io.restassured.RestAssured.given;
@@ -44,6 +46,13 @@ public class SqlResourceTest {
     String directoryPath;
 
 
+    @ConfigProperty(name = "quarkus.security.users.embedded.plain-text", defaultValue = "true")
+    Boolean isSecurityInPlainText;
+
+
+    @ConfigProperty(name = "quarkus.security.users.embedded.realm-name", defaultValue = "true")
+    String realmName;
+
 
     @BeforeEach
     public void loadDBTables(){
@@ -59,6 +68,8 @@ public class SqlResourceTest {
 
 
 
+    private String username = "test-admin";
+    private String password = "d0ntUseTh1s";
 
 
     @Test
@@ -66,8 +77,15 @@ public class SqlResourceTest {
         String expectedJsonStr = readResourceAsString("json/expected_data.json");
         JSONArray expectedArray = new JSONArray(expectedJsonStr);
 
-        given()
-        .when().get("/sql/query_this.sql")
+        var response =
+                given()
+                .when()
+                .auth()
+                .basic(username, password)
+                .get("/sql/query_this.sql")
+                .peek();
+
+        response
         .then()
         .statusCode(200)
         .body(sameJSONAs(expectedJsonStr)
@@ -102,11 +120,14 @@ public class SqlResourceTest {
 
     @Test
     public void fileContentCachingTest() throws JSONException {
-        String expectedJsonStr = readResourceAsString("json/expected_data.json");
-        JSONArray expectedArray = new JSONArray(expectedJsonStr);
+        var expectedJsonStr = readResourceAsString("json/expected_data.json");
+        var expectedArray = new JSONArray(expectedJsonStr);
 
         given()
-                .when().get("/sql/query_this.sql")
+                .when()
+                .auth()
+                .basic(username, password)
+                .get("/sql/query_this.sql")
                 .then()
                 .statusCode(200)
                 .body(sameJSONAs(expectedJsonStr)
@@ -115,12 +136,23 @@ public class SqlResourceTest {
 
         //read the file again
         given()
-                .when().get("/sql/query_this.sql")
+                .when()
+                .auth()
+                .basic(username, password)
+                .get("/sql/query_this.sql")
                 .then()
                 .statusCode(200)
                 .body(sameJSONAs(expectedJsonStr)
                         .allowingExtraUnexpectedFields()
                         .allowingAnyArrayOrdering());
+    }
+
+
+
+    @Test
+    public void testSecurityProps(){
+        assertFalse(isSecurityInPlainText);
+        assertEquals("sql-runner", realmName);
     }
 
 
