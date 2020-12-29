@@ -12,7 +12,6 @@ import org.galal.sql_runner.services.config.DatabaseProperties;
 import org.jboss.logging.Logger;
 import org.jdbi.v3.core.Jdbi;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -41,18 +40,19 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
     @Override
-    public Uni<String> query(String sql) {
-        return Uni.createFrom().item(() -> this.doRunQuery(sql));
+    public Uni<String> query(String sql, Map<String, String> params) {
+        return Uni.createFrom().item(() -> this.doRunQuery(sql, params));
     }
 
 
 
-    private String doRunQuery(String sql){
+    private String doRunQuery(String sql, Map<String, String> params){
         try {
             List<Map<String,Object>> result =
                     this.jdbi
                             .withHandle(
                                     h -> h.createQuery(sql)
+                                            .bindMap(params)
                                             .mapToMap()
                                             .list());
             return objectMapper.writeValueAsString(result);
@@ -65,7 +65,7 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
     @Override
-    public Uni<Integer> execute(String sql) {
+    public Uni<Integer> execute(String sql, Map<String, String> params) {
         return Uni.createFrom().item(() -> this.jdbi.withHandle(h -> h.execute(sql)));
     }
 

@@ -157,6 +157,69 @@ public class SqlResourceTest {
 
 
 
+
+    @Test
+    public void runSqlFileWithParamsTest() throws JSONException {
+        String expectedJsonStr = readResourceAsString("json/expected_only_bmw.json");
+        JSONArray expectedArray = new JSONArray(expectedJsonStr);
+
+        var response =
+                given()
+                        .when()
+                        .auth()
+                        .basic(username, password)
+                        .queryParam("brand_name", "BMW")
+                        .get("/sql/query_with_params.sql")
+                        .peek();
+        response
+                .then()
+                .statusCode(200)
+                .body(sameJSONAs(expectedJsonStr)
+                        .allowingExtraUnexpectedFields()
+                        .allowingAnyArrayOrdering());
+    }
+
+
+
+
+    @Test
+    public void runSqlFileWithNullParamsTest() throws JSONException {
+        String expectedJsonStr = "[]";
+        JSONArray expectedArray = new JSONArray(expectedJsonStr);
+
+        var response =
+                given()
+                        .when()
+                        .auth()
+                        .basic(username, password)
+                        .queryParam("brand_name")
+                        .get("/sql/query_with_params.sql")
+                        .peek();
+        response
+                .then()
+                .statusCode(200)
+                .body(sameJSONAs(expectedJsonStr)
+                        .allowingExtraUnexpectedFields()
+                        .allowingAnyArrayOrdering());
+    }
+
+
+
+
+    @Test
+    public void runSqlFileWithMissingParamsTest() throws JSONException {
+        var response =
+                given()
+                        .when()
+                        .auth()
+                        .basic(username, password)
+                        .get("/sql/query_with_params.sql")
+                        .then()
+                        .statusCode(500);
+    }
+
+
+
     private void loadSqlForTesting(String sqlFilePath){
         executeSqlFile(dataSource, sqlFilePath);
     }

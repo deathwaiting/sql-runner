@@ -3,20 +3,16 @@ package org.galal.sql_runner.services.database;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.r2dbc.spi.ConnectionFactories;
-import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.converters.uni.UniReactorConverters;
-import io.vertx.core.json.JsonArray;
 import org.galal.sql_runner.services.config.DatabaseProperties;
-import org.galal.sql_runner.services.verticles.FileServerVerticle;
 import org.jboss.logging.Logger;
 import org.springframework.data.r2dbc.core.DatabaseClient;
 import reactor.core.publisher.Mono;
 
-import javax.inject.Inject;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 import static io.smallrye.mutiny.converters.uni.UniReactorConverters.fromMono;
@@ -41,11 +37,14 @@ public class R2dbcReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
     @Override
-    public Uni<String> query(String sql) {
+    public Uni<String> query(String sql, Map<String, String> params) {
         LOG.info(format("R2dbc running query: [%s]",sql));
+
+        var statement= client.execute(sql);
+        statement = bindNonNullParams(params, statement);
+        statement = bindNullParams(params, statement);
         var resultMono =
-                client
-                    .execute(sql)
+                statement
                     .fetch()
                     .all()
                     .collectList()
@@ -57,8 +56,32 @@ public class R2dbcReactiveSqlDbClient implements ReactiveSqlDbClient{
 
 
 
+    private DatabaseClient.GenericExecuteSpec bindNullParams(Map<String, String> params, DatabaseClient.GenericExecuteSpec statement) {
+        return params
+                .entrySet()
+                .stream()
+                .filter(e -> Objects.isNull(e.getValue()))
+                .reduce(statement
+                        , (st,ent) -> st.bindNull(ent.getKey(), String.class)
+                        , (newStatement, oldStatement) -> newStatement);
+    }
+
+
+
+
+    private DatabaseClient.GenericExecuteSpec bindNonNullParams(Map<String, String> params, DatabaseClient.GenericExecuteSpec statement) {
+        return params
+                .entrySet()
+                .stream()
+                .filter(e -> Objects.nonNull(e.getValue()))
+                .reduce(statement
+                        , (st,ent) -> st.bind(ent.getKey(), ent.getValue())
+                        , (newStatement,oldStatement) -> newStatement);
+    }
+
+
     @Override
-    public Uni<Integer> execute(String sql) {
+    public Uni<Integer> execute(String sql, Map<String, String> params) {
         var resultMono =  client.execute(sql).fetch().rowsUpdated();
         return  Uni.createFrom().converter(fromMono(), resultMono);
     }

@@ -40,5 +40,28 @@ reactive chain, it seems possible though when using jax-rs and resteasy.
 
 - returning something other than Uni<String> for vertx @ConsumeEvent, caused the returned message to never come causing
 timeout
+--
 
+- quarkus caching
+    -- it uses caffeine cache implementation under the hood, which is based on google gauava cache, and supports both
+    sync and async cache loading
+    -- this means it is possible to cache results returned by methods returning Uni<?>.
+    -- the cache is annotation based , but can be configured via application.yml
+    -- it probably uses proxies, so annotations only works on public methods.
+    -- didn't test trying to inject the backend caffeine instance and manipulating it directly.
+- auth:
+    -- quarkus supports several authentication methods out of the box [OIDC, OAUTH2, smallRye-JWT, basic, form based]
+    https://quarkus.io/guides/security#identity-providers
+    -- Basic and form based are provided by default
+    -- Using Basic it possible to set embedded users in the application.yml or inside a file in the classpath
+    https://quarkus.io/guides/security-properties#quarkus-elytron-security_quarkus.security.users.embedded.algorithm
+    -- it is also possible to fetch the user info using different ways, using JPA, JDBC, OAuth2, and from property files.
+    https://quarkus.io/guides/security-built-in-authentication
+    -- it is possible to override security in tests, by disabling it, or setting a certain user for the test
+    https://quarkus.io/guides/security-testing#configuring-user-information
+    -- auth configuration of API's , policies , roles , and permissions can be set in the application.yml , which is
+    is a nice feature.
+    -- Http Digest authentication is not supported, or i couldn't just configure it
 
+ - Methods annotated with @ConsumeEvent can have objects as parameters, which will be serialized to messages between
+ verticles , this is important, because it will make type check easier when working with multiple verticles.
