@@ -4,6 +4,10 @@ quarkus:
   resteasy:
     gzip:
       enabled: true
+  cache:
+    caffeine:
+      FILE_CONTENT:
+        expire-after-write: 600S
 
 org:
   galal:
