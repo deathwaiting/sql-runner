@@ -29,6 +29,7 @@ dependencies {
     implementation("io.quarkus:quarkus-smallrye-metrics")
     implementation("io.quarkus:quarkus-reactive-db2-client")
     implementation("io.quarkus:quarkus-agroal")
+    implementation("io.quarkus:quarkus-elytron-security-properties-file")
 //    implementation("io.quarkus:quarkus-micrometer")
     implementation("io.quarkus:quarkus-arc")
     implementation("io.quarkus:quarkus-resteasy")

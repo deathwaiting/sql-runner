@@ -13,16 +13,20 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import io.vertx.mutiny.core.eventbus.Message;
 import io.vertx.reactivex.ext.web.RoutingContext;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.galal.sql_runner.services.verticles.SqlExecuterVerticle;
 import org.jboss.logging.Logger;
 
 
 import static java.lang.String.format;
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType.HTTP;
 import static org.galal.sql_runner.services.verticles.enums.Messages.EXECUTE_SQL;
 
 
 @ApplicationScoped
+@SecurityScheme(securitySchemeName = "Basic Auth", type = HTTP, scheme = "basic")
 @RouteBase(path = "sql", produces = APPLICATION_JSON)
 public class SqlResource {
     private static final Logger LOG = Logger.getLogger(SqlResource.class);
