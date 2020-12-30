@@ -52,7 +52,7 @@ public class OracleReactiveSqlDbClient implements ReactiveSqlDbClient{
                     this.jdbi
                             .withHandle(
                                     h -> h.createQuery(sql)
-                                            .bindMap(params)
+                                            .bindMap(params.isEmpty()? null: params)
                                             .mapToMap()
                                             .list());
             return objectMapper.writeValueAsString(result);

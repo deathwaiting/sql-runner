@@ -1,6 +1,7 @@
 plugins {
     java
     id("io.quarkus")
+    id("org.beryx.runtime") version "1.12.1"
 }
 
 repositories {
@@ -24,7 +25,6 @@ dependencies {
     implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-config-yaml")
     implementation("io.quarkus:quarkus-jackson")
-    implementation("io.quarkus:quarkus-logging-json")
     implementation("io.quarkus:quarkus-cache")
     implementation("io.quarkus:quarkus-smallrye-metrics")
     implementation("io.quarkus:quarkus-reactive-db2-client")
@@ -60,6 +60,16 @@ dependencies {
 
 }
 
+
+runtime {
+    options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+
+//    targetPlatform("linux", System.getenv("JDK_LINUX_HOME"))
+//    targetPlatform("mac", System.getenv("JDK_MAC_HOME"))
+//    targetPlatform("win", System.getenv("JDK_WIN_HOME"))
+}
+
+
 group = "org.galal"
 version = "1.0.0-SNAPSHOT"
 
@@ -71,4 +81,11 @@ java {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
+}
+
+tasks["runtime"].doLast {
+    copy {
+        from("src/main/resources")
+        into("$buildDir/image/bin")
+    }
 }

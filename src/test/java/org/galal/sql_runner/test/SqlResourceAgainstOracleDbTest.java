@@ -1,7 +1,8 @@
-package org.galal.sql_runner.test.quarkus.profiles;
+package org.galal.sql_runner.test;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.TestProfile;
+import org.galal.sql_runner.test.quarkus.profiles.OracleDbTestProfile;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ public class SqlResourceAgainstOracleDbTest {
     @Inject
     DataSource dataSource;
 
+    private String username = "test-admin";
+    private String password = "d0ntUseTh1s";
+
     @Test
     public void runSqlFileOnOracleDbTest() throws JSONException {
         try{
@@ -41,6 +45,8 @@ public class SqlResourceAgainstOracleDbTest {
 
         given()
             .when()
+                .auth()
+                .basic(username, password)
             .get("/sql/query_oracle.sql")
             .prettyPeek()
             .then()
