@@ -1,3 +1,5 @@
+import org.apache.maven.properties.internal.SystemProperties
+
 plugins {
     java
     id("io.quarkus")
@@ -13,6 +15,7 @@ val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 configurations.all{
+    //solving conflicts of h2 versions between r2dbc h2-client and quarkus
     resolutionStrategy{
         force("com.h2database:h2:1.4.200")
     }
@@ -60,32 +63,99 @@ dependencies {
 
 }
 
+group = "org.galal"
+version = "1.0.0-SNAPSHOT"
+val jarName = "sql-runner-${version}"
+val jreDirSuffix = "jre"
+val jreDir = "$buildDir/jre/${project.name}-$jreDirSuffix"
+
+
 
 runtime {
     options.set(listOf("--strip-debug", "--compress", "2", "--no-header-files", "--no-man-pages"))
+    //needed to configure jlink task
+    modules.set(
+            listOf(
+                "java.sql",
+                "java.naming",
+                "java.desktop",
+                "jdk.management",
+                "java.management",
+                "jdk.unsupported",
+                "java.rmi"))
 
-//    targetPlatform("linux", System.getenv("JDK_LINUX_HOME"))
-//    targetPlatform("mac", System.getenv("JDK_MAC_HOME"))
-//    targetPlatform("win", System.getenv("JDK_WIN_HOME"))
+    //select the OS specific block for providing the jre that will be bundled with the application
+    //jre is built using jlink tool.
+    //it is possible to provide the path of the jdk or even download it
+    //This uses "The Badass Runtime plugin" to create the jre, for more info. please check the
+    //plugin documentation https://badass-runtime-plugin.beryx.org/releases/latest/
+    targetPlatform(jreDirSuffix) {
+        setJdkHome(System.getProperty("java.home"))
+        addOptions("--endian", "big")
+    }
+
+
+//    targetPlatform(jreDirSuffix) {
+//        setJdkHome(jdkDownload("https://github.com/AdoptOpenJDK/openjdk14-binaries/releases/download/jdk-14.0.1%2B7.1/OpenJDK14U-jdk_x64_windows_hotspot_14.0.1_7.zip"))
+//        setBuildDir(jreDir)
+//        addOptions("--output", "$jreDir")
+//    }
 }
 
 
-group = "org.galal"
-version = "1.0.0-SNAPSHOT"
+
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_14
+    targetCompatibility = JavaVersion.VERSION_14
 }
+
+
+
+quarkus(){
+    setFinalName(jarName)
+}
+
+
 
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
 }
 
+
 tasks["runtime"].doLast {
     copy {
-        from("src/main/resources")
-        into("$buildDir/image/bin")
+        from("src/main/resources/application.yml")
+        into("$buildDir/image/bin/config")
+    }
+}
+
+
+tasks.register("testing"){
+    dependsOn("jre")
+    println(tasks["jre"].outputs.files.asPath)
+}
+
+
+tasks.register("jarWithJRE"){
+    System.setProperty("quarkus.package.type", "uber-jar")
+    val dependencies = listOf("build", "jre")
+    mustRunAfter(dependencies)
+    dependsOn(dependencies)
+
+    doLast{
+        copy {
+            from("src/main/resources/application.yml")
+            into("$buildDir/dist_with_jre/config")
+        }
+        copy {
+            from("src/main/resources/run.sh", "src/main/resources/run.bat", "$buildDir/${jarName}-runner.jar")
+            into("$buildDir/dist_with_jre")
+        }
+        copy {
+            from( jreDir)
+            into("$buildDir/dist_with_jre/jre")
+        }
     }
 }
